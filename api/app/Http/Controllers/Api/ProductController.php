@@ -8,60 +8,51 @@ use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    // Mostrar todos los productos
     public function index()
     {
-        $products = Product::all();
-        return $products;
+        return Product::all();  // Devuelve todos los productos
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
+    // Crear un nuevo producto
     public function store(Request $request)
     {
         $product = new Product();
-
-        // BASE DE DATOS = DATOS QUE OBTIENES DEL FORMULARIO
-
         $product->description = $request->description;
         $product->price = $request->price;
         $product->stock = $request->stock;
-
         $product->save();
+        return response()->json($product, 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    // Mostrar un producto específico por ID
+    public function show($id)
     {
-        $product = Product::find($id);
-        return $product;
+        $product = Product::findOrFail($id);  // Obtiene el producto por ID
+        return response()->json($product);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    // Actualizar un producto específico
+    public function update(Request $request, $id)
     {
-        $product = Product::findOrFail($request->$id);
-        $product->description = $request->description;
-        $product->price = $request->price;
-        $product->stock = $request->stock;
+        $validated = $request->validate([
+            'description' => 'required|string|max:255',
+            'price' => 'required|numeric|min:0',
+            'stock' => 'required|integer|min:0',
+        ]);
 
-        $product->save();
-        return $product;
+        $product = Product::findOrFail($id);  // Encuentra el producto por ID
+        $product->update($validated);  // Actualiza el producto
+
+        return response()->json(['message' => 'Producto actualizado', 'product' => $product]);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
+    // Eliminar un producto específico
+    public function destroy($id)
     {
-        $product = Product::destroy($id);
-        return $product;
+        $product = Product::findOrFail($id);  // Encuentra el producto por ID
+        $product->delete();  // Elimina el producto
+
+        return response()->json(['message' => 'Producto eliminado']);
     }
 }
