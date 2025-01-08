@@ -8,50 +8,58 @@ use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
-    // Mostrar todos los productos
+    // Obtener todos los productos
     public function index()
     {
-        return Product::all();  // Devuelve todos los productos
+        return response()->json(Product::all());
     }
 
     // Crear un nuevo producto
     public function store(Request $request)
     {
-        $product = new Product();
-        $product->description = $request->description;
-        $product->price = $request->price;
-        $product->stock = $request->stock;
-        $product->save();
+        $request->validate([
+            'description' => 'required|string',
+            'price' => 'required|numeric',
+            'stock' => 'required|integer',
+        ]);
+
+        $product = Product::create($request->all());
+
         return response()->json($product, 201);
     }
 
-    // Mostrar un producto específico por ID
+    // Obtener un producto por ID
     public function show($id)
     {
-        $product = Product::findOrFail($id);  // Obtiene el producto por ID
+        $product = Product::findOrFail($id);
         return response()->json($product);
     }
 
-    // Actualizar un producto específico
+    // Actualizar un producto por ID
     public function update(Request $request, $id)
     {
-        $validated = $request->validate([
-            'description' => 'required|string|max:255',
-            'price' => 'required|numeric|min:0',
-            'stock' => 'required|integer|min:0',
+
+        $request->validate([
+            'description' => 'required|string',
+            'price' => 'required|numeric',
+            'stock' => 'required|integer',
         ]);
 
-        $product = Product::findOrFail($id);  // Encuentra el producto por ID
-        $product->update($validated);  // Actualiza el producto
+        $product = Product::findOrFail($request->id);
+        $product->description = $request->description;
+        $product->price = $request->price;
+        $product->stock = $request->stock;
 
-        return response()->json(['message' => 'Producto actualizado', 'product' => $product]);
+        $product->save();
+
+        return response()->json($product);
     }
 
-    // Eliminar un producto específico
+    // Eliminar un producto por ID
     public function destroy($id)
     {
-        $product = Product::findOrFail($id);  // Encuentra el producto por ID
-        $product->delete();  // Elimina el producto
+        $product = Product::findOrFail($id);
+        $product->delete();
 
         return response()->json(['message' => 'Producto eliminado']);
     }
